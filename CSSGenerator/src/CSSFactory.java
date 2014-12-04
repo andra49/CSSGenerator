@@ -12,10 +12,10 @@ import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.Recognizer;
 
 public class CSSFactory {
-	
+
 	public static int depth = 0;
 
-	public CSS createCSS(InputStream inputStream) throws IOException {
+	public static void createCSS(InputStream inputStream) throws IOException {
 		CSSLexer l = new CSSLexer(new ANTLRInputStream(inputStream));
 		CSSParser p = new CSSParser(new CommonTokenStream(l));
 		p.addErrorListener(new BaseErrorListener() {
@@ -43,7 +43,7 @@ public class CSSFactory {
 			System.err.println("Unable to load FileWriter");
 		}
 		final BufferedWriter bw = new BufferedWriter(fw);
-		
+
 		// Print header
 		bw.write("<html lang='en'>\n");
 		bw.write("<head>\n");
@@ -53,55 +53,51 @@ public class CSSFactory {
 		bw.write("\t<link href='bootstrap.min.css' rel='stylesheet'>\n");
 		bw.write("\t<link href='/favicon.ico' rel='icon'>\n");
 		p.addParseListener(new CSSBaseListener() {
-			
+
 			@Override
 			public void exitTitle_string(CSSParser.Title_stringContext ctx) {
 				try {
-					bw.write("\t<title>" + ctx.getText()+"</title>\n");
+					bw.write("\t<title>" + ctx.getText() + "</title>\n");
 					bw.write("</head>\n");
 					bw.write("<body>\n");
 				} catch (IOException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}
-			
-			
-			
+
 			@Override
 			public void enterInteger(CSSParser.IntegerContext ctx) {
-					depth++;
+				depth++;
 			}
-						
+
 			@Override
 			public void exitInteger(CSSParser.IntegerContext ctx) {
 				try {
 					printTab(bw);
-					bw.write("<div class='col-md-"+ctx.getText()+"'></div>\n");
+					bw.write("<div class='col-md-" + ctx.getText()
+							+ "'></div>\n");
 					depth--;
 				} catch (IOException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}
-			
+
 			@Override
 			public void exitSpecial(CSSParser.SpecialContext ctx) {
 				try {
 					printTab(bw);
-					bw.write("<div class='col-md-"+ctx.getText()+"'>\n");
-					
+					bw.write("<div class='col-md-" + ctx.getText() + "'>\n");
+
 				} catch (IOException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}
-			
+
 			@Override
 			public void enterSpecial(CSSParser.SpecialContext ctx) {
 				depth++;
 			}
-			
+
 			@Override
 			public void exitRow(CSSParser.RowContext ctx) {
 				try {
@@ -112,11 +108,10 @@ public class CSSFactory {
 					bw.write("</div>\n");
 					depth--;
 				} catch (IOException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}
-			
+
 			@Override
 			public void enterRow(CSSParser.RowContext ctx) {
 				depth++;
@@ -124,11 +119,10 @@ public class CSSFactory {
 					printTab(bw);
 					bw.write("<div class='row'>\n");
 				} catch (IOException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}
-			
+
 			@Override
 			public void enterCol(CSSParser.ColContext ctx) {
 				depth++;
@@ -136,7 +130,6 @@ public class CSSFactory {
 					printTab(bw);
 					bw.write("<div>\n");
 				} catch (IOException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}
@@ -146,11 +139,11 @@ public class CSSFactory {
 		bw.write("</html>\n");
 		bw.close();
 		
-		return null;
+		System.out.println("genfile.html generated");
 	}
-	
-	public static void printTab(BufferedWriter bw) throws IOException{
-		for  (int i = 0; i < depth; i++) {
+
+	public static void printTab(BufferedWriter bw) throws IOException {
+		for (int i = 0; i < depth; i++) {
 			bw.write("\t");
 		}
 	}
