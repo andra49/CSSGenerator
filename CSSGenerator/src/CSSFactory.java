@@ -3,7 +3,6 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
 
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.BaseErrorListener;
@@ -14,6 +13,9 @@ import org.antlr.v4.runtime.Recognizer;
 public class CSSFactory {
 
 	public static int depth = 0;
+	public static boolean startbody = true;
+	public static String Title = "Default Title";
+	public static String Lang = "en";
 
 	public static void createCSS(InputStream inputStream) throws IOException {
 		CSSLexer l = new CSSLexer(new ANTLRInputStream(inputStream));
@@ -33,36 +35,27 @@ public class CSSFactory {
 			try {
 				file.createNewFile();
 			} catch (IOException e) {
-				System.err.println("Unable to create file");
+				System.err.println("Unable to create file:\n" + e.getMessage());
 			}
 		}
 		FileWriter fw = null;
 		try {
 			fw = new FileWriter(file.getAbsoluteFile());
 		} catch (IOException e) {
-			System.err.println("Unable to load FileWriter");
+			System.err.println("Unable to load FileWriter:\n" + e.getMessage());
 		}
 		final BufferedWriter bw = new BufferedWriter(fw);
-
-		// Print header
-		bw.write("<html lang='en'>\n");
-		bw.write("<head>\n");
-		bw.write("\t<meta http-equiv='X-UA-Compatible' content='IE=edge'>\n");
-		bw.write("\t<meta charset='utf-8'>\n");
-		bw.write("\t<meta name='viewport' content='width=device-width, initial-scale=1'>\n");
-		bw.write("\t<link href='bootstrap.min.css' rel='stylesheet'>\n");
-		bw.write("\t<link href='/favicon.ico' rel='icon'>\n");
+		
 		p.addParseListener(new CSSBaseListener() {
 
 			@Override
 			public void exitTitle_string(CSSParser.Title_stringContext ctx) {
-				try {
-					bw.write("\t<title>" + ctx.getText() + "</title>\n");
-					bw.write("</head>\n");
-					bw.write("<body>\n");
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
+				Title = ctx.getText();
+			}
+			
+			@Override
+			public void exitLang_string(CSSParser.Lang_stringContext ctx) {
+				Lang = ctx.getText();
 			}
 
 			@Override
@@ -100,7 +93,7 @@ public class CSSFactory {
 
 			@Override
 			public void exitRow(CSSParser.RowContext ctx) {
-				try {
+				try {					
 					printTab(bw);
 					bw.write("</div>\n");
 					depth--;
@@ -126,6 +119,25 @@ public class CSSFactory {
 			@Override
 			public void enterCol(CSSParser.ColContext ctx) {
 				depth++;
+				if(startbody) {
+					try {
+						bw.write("<!DOCTYPE html>\n");
+						bw.write("<html lang=\"" + Lang + "\">\n");
+						bw.write("<head>\n");
+						bw.write("\t<meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\">\n");
+						bw.write("\t<meta charset=\"utf-8\">\n");
+						bw.write("\t<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n");
+						bw.write("\t<link href=\"https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css\" rel=\"stylesheet\">\n");
+						bw.write("\t<link href=\"/favicon.ico\" rel=\"icon\">\n");
+						bw.write("\t<title>" + Title + "</title>\n");
+						bw.write("</head>\n");
+						bw.write("<body>\n");
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					startbody = false;
+				}
 				try {
 					printTab(bw);
 					bw.write("<div>\n");
@@ -135,6 +147,9 @@ public class CSSFactory {
 			}
 		});
 		p.prog();
+		
+		bw.write("\t<script src=\"https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js\"></script>\n");
+		bw.write("\t<script src=\"https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js\"></script>");
 		bw.write("</body>\n");
 		bw.write("</html>\n");
 		bw.close();
